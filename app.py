@@ -5,6 +5,9 @@ from streamlit_geolocation import streamlit_geolocation
 from math import radians, sin, cos, sqrt, atan2
 
 def haversine_distance(lat1, lon1, lat2, lon2):
+    if None in (lat1, lon1, lat2, lon2):
+        return None
+    
     R = 6371  # Earth's radius in kilometers
 
     lat1, lon1, lat2, lon2 = map(radians, [lat1, lon1, lat2, lon2])
@@ -43,7 +46,7 @@ nearby_stations = []
 for station in stations:
     station_name, station_lat, station_lon = station
     distance = haversine_distance(lat, lon, station_lat, station_lon)
-    if distance <= 6.44:  # 4 miles is approximately 6.44 kilometers
+    if distance is not None and distance <= 6.44:  # 4 miles is approximately 6.44 kilometers
         nearby_stations.append({
             'Name': station_name,
             'Latitude': station_lat,
