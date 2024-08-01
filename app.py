@@ -25,14 +25,17 @@ st.title("Nearby Stations Finder")
 
 location = streamlit_geolocation()
 
-if location:
+# Default location (Cupertino, CA)
+default_lat = 37.3526819
+default_lon = -122.0513147
+
+if location is None:
+    lat, lon = default_lat, default_lon
+    st.write(f"Using default location: Latitude {lat}, Longitude {lon}")
+else:
     lat = location['latitude']
     lon = location['longitude']
     st.write(f"Your current location: Latitude {lat}, Longitude {lon}")
-else:
-    lat = 37.3526819
-    lon = -122.0513147
-    st.write(f"Using default location: Latitude {lat}, Longitude {lon}")
 
 conn = sqlite3.connect('stations.sqlite')
 cursor = conn.cursor()
