@@ -34,31 +34,29 @@ else:
 conn = sqlite3.connect('stations.sqlite')
 cursor = conn.cursor()
 
-    # Fetch all stations
-    cursor.execute("SELECT name, latitude, longitude FROM stations")
-    stations = cursor.fetchall()
+# Fetch all stations
+cursor.execute("SELECT name, latitude, longitude FROM stations")
+stations = cursor.fetchall()
 
-    nearby_stations = []
+nearby_stations = []
 
-    for station in stations:
-        station_name, station_lat, station_lon = station
-        distance = haversine_distance(lat, lon, station_lat, station_lon)
-        if distance <= 6.44:  # 4 miles is approximately 6.44 kilometers
-            nearby_stations.append({
-                'Name': station_name,
-                'Latitude': station_lat,
-                'Longitude': station_lon,
-                'Distance (km)': round(distance, 2)
-            })
+for station in stations:
+    station_name, station_lat, station_lon = station
+    distance = haversine_distance(lat, lon, station_lat, station_lon)
+    if distance <= 6.44:  # 4 miles is approximately 6.44 kilometers
+        nearby_stations.append({
+            'Name': station_name,
+            'Latitude': station_lat,
+            'Longitude': station_lon,
+            'Distance (km)': round(distance, 2)
+        })
 
-    if nearby_stations:
-        df = pd.DataFrame(nearby_stations)
-        df = df.sort_values('Distance (km)')
-        st.write("Stations within 4 miles:")
-        st.dataframe(df)
-    else:
-        st.write("No stations found within 4 miles of your location.")
-
-    conn.close()
+if nearby_stations:
+    df = pd.DataFrame(nearby_stations)
+    df = df.sort_values('Distance (km)')
+    st.write("Stations within 4 miles:")
+    st.dataframe(df)
 else:
-    st.write("Please enable location access to find nearby stations.")
+    st.write("No stations found within 4 miles of your location.")
+
+conn.close()
