@@ -5,7 +5,7 @@ import requests
 from streamlit_geolocation import streamlit_geolocation
 from math import radians, sin, cos, sqrt, atan2
 
-def get_stations_with_charging_state(location_node_id):
+def get_stations_data(location_node_id):
     # API endpoint
     url = 'https://api.voltaapi.com/v1/pg-graphql'
 
@@ -25,7 +25,7 @@ def get_stations_with_charging_state(location_node_id):
         "query": """
             query getStation($locationNodeId: ID!) {
               locationByNodeId(nodeId: $locationNodeId) {
-                name
+              name
                 stationsByLocationId(orderBy: STATION_NUMBER_ASC) {
                   edges {
                     node {
@@ -52,22 +52,29 @@ def get_stations_with_charging_state(location_node_id):
 
     # Making the POST request
     response = requests.post(url, headers=headers, json=data)
-    data = response.json()
+    return response.json()
 
-    stations_with_state = []
-    if data and 'data' in data:
-        location = data['data']['locationByNodeId']
-        if location and 'stationsByLocationId' in location:
-            for edge in location['stationsByLocationId']['edges']:
-                station = edge['node']
-                evses = station['evses']['edges']
-                state = evses[0]['node']['state'] if evses else "Unknown"
-                stations_with_state.append({
-                    'name': station['name'],
-                    'state': state
-                })
-
-    return stations_with_state
+def get_stations_with_charging_state(location_node_id):
+    data = get_stations_data(location_node_id)
+    stations_data = data['data']['locationByNodeId']['stationsByLocationId']['edges']
+    stations_list = []
+    station_name = data['data']['locationByNodeId']['name']
+    for station in stations_data:
+        station_node = station['node']
+        charging_states = [evse['node']['state'] for evse in station_node['evses']['edges']]
+        stations_list.append({
+            "name": station_name,
+            "node_name": station_node['name'],
+            "stationNumber": station_node['stationNumber'],
+            "charging_states": charging_states
+        })
+    df_stations = pd.DataFrame(stations_list)
+    df_expanded = df_stations.explode('charging_states')
+    df_expanded.reset_index(drop=True, inplace=True)
+    update_stationsDB(df_stations)
+    # print(df_expanded)
+    # print (df_stations)
+    return df_expanded
 
 def haversine_distance(lat1, lon1, lat2, lon2):
     if None in (lat1, lon1, lat2, lon2):
@@ -111,41 +118,42 @@ conn = sqlite3.connect('stations.sqlite')
 cursor = conn.cursor()
 
 # Fetch all stations
-cursor.execute("SELECT nodeId, name, latitude, longitude FROM stations")
+cursor.execute("SELECT name, latitude, longitude FROM stations")
 stations = cursor.fetchall()
-
-st.write(f"Total stations in database: {len(stations)}")
 
 nearby_stations = []
 
 for station in stations:
-    node_id, station_name, station_lat, station_lon = station
+    station_name, station_lat, station_lon = station
     distance = haversine_distance(lat, lon, station_lat, station_lon)
     if distance is not None and distance <= 6.44:  # 4 miles is approximately 6.44 kilometers
-        # Fetch station data with charging states
-        stations_data = get_stations_with_charging_state(node_id)
+        # Fetch station data
+        station_data = get_stations_data(station_name)
         
-        if stations_data:
-            for station_data in stations_data:
-                nearby_stations.append({
-                    'Name': f"{station_name} - {station_data['name']}",
-                    'Latitude': station_lat,
-                    'Longitude': station_lon,
-                    'Distance (km)': round(distance, 2),
-                    'Charging State': station_data['state']
-                })
-        else:
-            st.write(f"No charging state data for station: {station_name}")
-
-st.write(f"Nearby stations found: {len(nearby_stations)}")
+        # Extract charging state
+        charging_state = "Unknown"
+        if station_data and 'data' in station_data:
+            location = station_data['data']['locationByNodeId']
+            if location and 'stationsByLocationId' in location:
+                edges = location['stationsByLocationId']['edges']
+                if edges:
+                    evses = edges[0]['node']['evses']['edges']
+                    if evses:
+                        charging_state = evses[0]['node']['state']
+        
+        nearby_stations.append({
+            'Name': station_name,
+            'Latitude': station_lat,
+            'Longitude': station_lon,
+            'Distance (km)': round(distance, 2),
+            'Charging State': charging_state
+        })
 
 if nearby_stations:
     df = pd.DataFrame(nearby_stations)
     df = df.sort_values('Distance (km)')
     st.write("Stations within 4 miles:")
-    
-    # Display the results in a neat table
-    st.table(df[['Name', 'Distance (km)', 'Charging State']])
+    st.dataframe(df)
 else:
     st.write("No stations found within 4 miles of your location.")
 
