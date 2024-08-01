@@ -111,7 +111,7 @@ conn = sqlite3.connect('stations.sqlite')
 cursor = conn.cursor()
 
 # Fetch all stations
-cursor.execute("SELECT location_node_id, name, latitude, longitude FROM stations")
+cursor.execute("SELECT nodeId, name, latitude, longitude FROM stations")
 stations = cursor.fetchall()
 
 st.write(f"Total stations in database: {len(stations)}")
@@ -119,11 +119,11 @@ st.write(f"Total stations in database: {len(stations)}")
 nearby_stations = []
 
 for station in stations:
-    location_node_id, station_name, station_lat, station_lon = station
+    node_id, station_name, station_lat, station_lon = station
     distance = haversine_distance(lat, lon, station_lat, station_lon)
     if distance is not None and distance <= 6.44:  # 4 miles is approximately 6.44 kilometers
         # Fetch station data with charging states
-        stations_data = get_stations_with_charging_state(location_node_id)
+        stations_data = get_stations_with_charging_state(node_id)
         
         if stations_data:
             for station_data in stations_data:
