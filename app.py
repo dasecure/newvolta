@@ -1,6 +1,7 @@
 import streamlit as st
 import sqlite3
 import pandas as pd
+import requests
 from streamlit_geolocation import streamlit_geolocation
 from math import radians, sin, cos, sqrt, atan2
 
@@ -104,11 +105,26 @@ for station in stations:
     station_name, station_lat, station_lon = station
     distance = haversine_distance(lat, lon, station_lat, station_lon)
     if distance is not None and distance <= 6.44:  # 4 miles is approximately 6.44 kilometers
+        # Fetch station data
+        station_data = get_stations_data(station_name)
+        
+        # Extract charging state
+        charging_state = "Unknown"
+        if station_data and 'data' in station_data:
+            location = station_data['data']['locationByNodeId']
+            if location and 'stationsByLocationId' in location:
+                edges = location['stationsByLocationId']['edges']
+                if edges:
+                    evses = edges[0]['node']['evses']['edges']
+                    if evses:
+                        charging_state = evses[0]['node']['state']
+        
         nearby_stations.append({
             'Name': station_name,
             'Latitude': station_lat,
             'Longitude': station_lon,
-            'Distance (km)': round(distance, 2)
+            'Distance (km)': round(distance, 2),
+            'Charging State': charging_state
         })
 
 if nearby_stations:
