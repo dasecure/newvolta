@@ -4,6 +4,55 @@ import pandas as pd
 from streamlit_geolocation import streamlit_geolocation
 from math import radians, sin, cos, sqrt, atan2
 
+def get_stations_data(location_node_id):
+    # API endpoint
+    url = 'https://api.voltaapi.com/v1/pg-graphql'
+
+    # Headers
+    headers = {
+        'authority': 'api.voltaapi.com',
+        'accept': '*/*',
+        'accept-language': 'en-US,en;q=0.9',
+        'content-type': 'application/json',
+        'origin': 'https://voltacharging.com',
+        'referer': 'https://voltacharging.com/',
+        'x-api-key': 'u74w38X44fa7m3calbsu69blJVcC739z8NWJggVv'
+    }
+
+    # GraphQL query and variables
+    data = {
+        "query": """
+            query getStation($locationNodeId: ID!) {
+              locationByNodeId(nodeId: $locationNodeId) {
+              name
+                stationsByLocationId(orderBy: STATION_NUMBER_ASC) {
+                  edges {
+                    node {
+                      id
+                      stationNumber
+                      name
+                      evses {
+                        edges {
+                          node {
+                            state
+                          }
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+        """,
+        "variables": {
+            "locationNodeId": location_node_id
+        }
+    }
+
+    # Making the POST request
+    response = requests.post(url, headers=headers, json=data)
+    return response.json()
+
 def haversine_distance(lat1, lon1, lat2, lon2):
     if None in (lat1, lon1, lat2, lon2):
         return None
