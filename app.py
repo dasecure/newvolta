@@ -23,19 +23,24 @@ def haversine_distance(lat1, lon1, lat2, lon2):
 
 st.title("Nearby Stations Finder")
 
-location = streamlit_geolocation()
-
 # Default location (Cupertino, CA)
 default_lat = 37.3526819
 default_lon = -122.0513147
 
-if location is None:
+location = streamlit_geolocation()
+
+if location is None or location.get('latitude') is None or location.get('longitude') is None:
     lat, lon = default_lat, default_lon
     st.write(f"Using default location: Latitude {lat}, Longitude {lon}")
 else:
     lat = location['latitude']
     lon = location['longitude']
     st.write(f"Your current location: Latitude {lat}, Longitude {lon}")
+
+# Ensure lat and lon are not None
+if lat is None or lon is None:
+    lat, lon = default_lat, default_lon
+    st.write(f"Invalid location detected. Using default location: Latitude {lat}, Longitude {lon}")
 
 conn = sqlite3.connect('stations.sqlite')
 cursor = conn.cursor()
