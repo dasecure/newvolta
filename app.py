@@ -111,26 +111,33 @@ conn = sqlite3.connect('stations.sqlite')
 cursor = conn.cursor()
 
 # Fetch all stations
-cursor.execute("SELECT name, latitude, longitude FROM stations")
+cursor.execute("SELECT location_node_id, name, latitude, longitude FROM stations")
 stations = cursor.fetchall()
+
+st.write(f"Total stations in database: {len(stations)}")
 
 nearby_stations = []
 
 for station in stations:
-    station_name, station_lat, station_lon = station
+    location_node_id, station_name, station_lat, station_lon = station
     distance = haversine_distance(lat, lon, station_lat, station_lon)
     if distance is not None and distance <= 6.44:  # 4 miles is approximately 6.44 kilometers
         # Fetch station data with charging states
-        stations_data = get_stations_with_charging_state(station_name)
+        stations_data = get_stations_with_charging_state(location_node_id)
         
-        for station_data in stations_data:
-            nearby_stations.append({
-                'Name': f"{station_name} - {station_data['name']}",
-                'Latitude': station_lat,
-                'Longitude': station_lon,
-                'Distance (km)': round(distance, 2),
-                'Charging State': station_data['state']
-            })
+        if stations_data:
+            for station_data in stations_data:
+                nearby_stations.append({
+                    'Name': f"{station_name} - {station_data['name']}",
+                    'Latitude': station_lat,
+                    'Longitude': station_lon,
+                    'Distance (km)': round(distance, 2),
+                    'Charging State': station_data['state']
+                })
+        else:
+            st.write(f"No charging state data for station: {station_name}")
+
+st.write(f"Nearby stations found: {len(nearby_stations)}")
 
 if nearby_stations:
     df = pd.DataFrame(nearby_stations)
