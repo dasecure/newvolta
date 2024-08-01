@@ -26,9 +26,13 @@ if location:
     lat = location['latitude']
     lon = location['longitude']
     st.write(f"Your current location: Latitude {lat}, Longitude {lon}")
+else:
+    lat = 37.3526819
+    lon = -122.0513147
+    st.write(f"Using default location: Latitude {lat}, Longitude {lon}")
 
-    conn = sqlite3.connect('stations.sqlite')
-    cursor = conn.cursor()
+conn = sqlite3.connect('stations.sqlite')
+cursor = conn.cursor()
 
     # Fetch all stations
     cursor.execute("SELECT name, latitude, longitude FROM stations")
