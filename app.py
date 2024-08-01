@@ -143,7 +143,13 @@ if nearby_stations:
     df = pd.DataFrame(nearby_stations)
     df = df.sort_values('Distance (km)')
     st.write("Stations within 4 miles:")
-    st.dataframe(df)
+    
+    # Display each station with its charging state
+    for _, station in df.iterrows():
+        st.write(f"**{station['Name']}**")
+        st.write(f"Distance: {station['Distance (km)']} km")
+        st.write(f"Charging State: {station['Charging State']}")
+        st.write("---")
 else:
     st.write("No stations found within 4 miles of your location.")
 
