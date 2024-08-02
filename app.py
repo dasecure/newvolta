@@ -204,7 +204,7 @@ for station in stations:
             'Name': station_name,
             'Latitude': station_lat,
             'Longitude': station_lon,
-            'Distance (km)': round(distance, 2),
+            'Distance (miles)': round(distance / 1.60934, 2),  # Convert km to miles
             'NodeId': node_id
         })
 
@@ -220,11 +220,11 @@ if nearby_stations:
         all_charging_data = []
         for _, station in df.iterrows():
             charging_data = get_stations_with_charging_state(station['NodeId'])
-            charging_data['Distance (km)'] = station['Distance (km)']
+            charging_data['Distance (miles)'] = station['Distance (miles)']
             all_charging_data.append(charging_data)
     
         combined_data = pd.concat(all_charging_data, ignore_index=True)
-        combined_data = combined_data.sort_values('Distance (km)')
+        combined_data = combined_data.sort_values('Distance (miles)')
     
         if enable_notifications and previous_data is not None:
             for _, current_row in combined_data.iterrows():
@@ -249,7 +249,7 @@ if nearby_stations:
         return f'background-color: {bg_color}; color: #333333;'
 
     charging_data_container = st.empty()
-    styled_df = combined_data[['node_name', 'stationNumber', 'charging_states', 'Distance (km)']].style.applymap(color_charging_states, subset=['charging_states'])
+    styled_df = combined_data[['node_name', 'stationNumber', 'charging_states', 'Distance (miles)']].style.applymap(color_charging_states, subset=['charging_states'])
     
     # Custom CSS for the dataframe
     st.markdown("""
@@ -262,6 +262,14 @@ if nearby_stations:
     .dataframe td, .dataframe th {
         border: 1px solid #ddd;
         padding: 8px;
+    }
+    .dataframe td:nth-child(2) {  /* stationNumber column */
+        width: 80px;
+        text-align: center;
+    }
+    .dataframe td:last-child {  /* Distance column */
+        width: 100px;
+        text-align: right;
     }
     .dataframe tr:nth-child(even) {
         background-color: #f9f9f9;
