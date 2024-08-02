@@ -4,6 +4,20 @@ import pandas as pd
 import requests
 from streamlit_geolocation import streamlit_geolocation
 from math import radians, sin, cos, sqrt, atan2
+from geopy.geocoders import Nominatim
+from geopy.exc import GeocoderTimedOut, GeocoderUnavailable
+
+def geocode_location(location_name):
+    geolocator = Nominatim(user_agent="my_app")
+    try:
+        location = geolocator.geocode(location_name)
+        if location:
+            return location.latitude, location.longitude
+        else:
+            return None, None
+    except (GeocoderTimedOut, GeocoderUnavailable):
+        st.error("Geocoding service is unavailable. Please try again later.")
+        return None, None
 
 def get_stations_data(location_node_id):
     # API endpoint
@@ -98,15 +112,25 @@ st.title("Nearby Stations Finder")
 default_lat = 37.3526819
 default_lon = -122.0513147
 
-location = streamlit_geolocation()
+# Add location search textbox
+location_search = st.text_input("Enter a city name or address:")
 
-if location is None or location.get('latitude') is None or location.get('longitude') is None:
-    lat, lon = default_lat, default_lon
-    st.write(f"Using default location: Latitude {lat}, Longitude {lon}")
+if location_search:
+    lat, lon = geocode_location(location_search)
+    if lat is not None and lon is not None:
+        st.write(f"Searched location: Latitude {lat}, Longitude {lon}")
+    else:
+        st.error("Location not found. Using default or current location.")
+        lat, lon = None, None
 else:
-    lat = location['latitude']
-    lon = location['longitude']
-    st.write(f"Your current location: Latitude {lat}, Longitude {lon}")
+    location = streamlit_geolocation()
+    if location is None or location.get('latitude') is None or location.get('longitude') is None:
+        lat, lon = default_lat, default_lon
+        st.write(f"Using default location: Latitude {lat}, Longitude {lon}")
+    else:
+        lat = location['latitude']
+        lon = location['longitude']
+        st.write(f"Your current location: Latitude {lat}, Longitude {lon}")
 
 # Ensure lat and lon are not None
 if lat is None or lon is None:
