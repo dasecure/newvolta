@@ -144,14 +144,14 @@ col1, col2 = st.columns(2)
 
 with col1:
     st.subheader("📍 Location")
-    location_search = st.text_input("Enter a city name or address:", placeholder="e.g., New York, NY")
+    location_search = st.text_input("Enter a city name or address:", placeholder="e.g., Sunnyvale, CA")
 
     if not location_search:
         st.info("Using current or default location")
 
 with col2:
     st.subheader("🔍 Search Options")
-    search_radius_miles = st.select_slider("Select search radius (miles):", options=[4, 6, 8, 10, 12], value=8)
+    search_radius_miles = st.select_slider("Select search radius (miles):", options=[4, 6, 8, 10, 12], value=4)
     search_radius_km = search_radius_miles * 1.60934  # Convert miles to kilometers
 
     enable_polling = st.toggle("Enable real-time updates", value=False)
