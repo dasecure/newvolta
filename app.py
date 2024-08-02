@@ -72,7 +72,6 @@ def get_stations_with_charging_state(location_node_id):
     df_stations = pd.DataFrame(stations_list)
     df_expanded = df_stations.explode('charging_states')
     df_expanded.reset_index(drop=True, inplace=True)
-    update_stationsDB(df_stations)
     # print(df_expanded)
     # print (df_stations)
     return df_expanded
