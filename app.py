@@ -296,7 +296,7 @@ if nearby_stations:
                 time.sleep(polling_interval)
                 previous_data = combined_data.copy()
                 combined_data = update_charging_data(previous_data)
-                styled_df = combined_data[['node_name', 'stationNumber', 'charging_states', 'Distance (km)']].style.applymap(color_charging_states, subset=['charging_states'])
+                styled_df = combined_data[['node_name', 'stationNumber', 'charging_states', 'Distance (miles)']].style.applymap(color_charging_states, subset=['charging_states'])
                 charging_data_container.dataframe(styled_df, use_container_width=True)
                 st.rerun()
 else:
