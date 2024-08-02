@@ -137,14 +137,18 @@ for station in stations:
 if nearby_stations:
     df = pd.DataFrame(nearby_stations)
     df = df.sort_values('Distance (km)')
-    st.write("Stations within 4 miles:")
-    st.dataframe(df[['Name', 'Distance (km)']])
-
-    st.write("Charging Stations and Their States:")
+    
+    all_charging_data = []
     for _, station in df.iterrows():
-        st.write(f"Station: {station['Name']}")
         charging_data = get_stations_with_charging_state(station['NodeId'])
-        st.table(charging_data[['node_name', 'stationNumber', 'charging_states']])
+        charging_data['Distance (km)'] = station['Distance (km)']
+        all_charging_data.append(charging_data)
+    
+    combined_data = pd.concat(all_charging_data, ignore_index=True)
+    combined_data = combined_data.sort_values('Distance (km)')
+    
+    st.write("Charging Stations within 4 miles:")
+    st.dataframe(combined_data[['name', 'node_name', 'stationNumber', 'charging_states', 'Distance (km)']])
 else:
     st.write("No stations found within 4 miles of your location.")
 
