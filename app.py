@@ -245,8 +245,8 @@ if nearby_stations:
     st.subheader(f"🔋 Charging Stations within {search_radius_miles} miles:")
     
     def color_charging_states(val):
-        color = '#e6ffe6' if val in ['PLUGGED_OUT', 'IDLE'] else '#ffe6e6'
-        return f'background-color: {color}'
+        bg_color = '#e6ffe6' if val in ['PLUGGED_OUT', 'IDLE'] else '#ffe6e6'
+        return f'background-color: {bg_color}; color: #333333;'
 
     charging_data_container = st.empty()
     styled_df = combined_data[['node_name', 'stationNumber', 'charging_states', 'Distance (km)']].style.applymap(color_charging_states, subset=['charging_states'])
