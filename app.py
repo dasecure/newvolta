@@ -292,7 +292,7 @@ if nearby_stations:
     if enable_polling:
         st.info("🔄 Real-time updates enabled. Data will refresh every 2 seconds.")
         with st.spinner('Updating data...'):
-            while True:
+            while True: 
                 time.sleep(polling_interval)
                 previous_data = combined_data.copy()
                 combined_data = update_charging_data(previous_data)
