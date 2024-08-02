@@ -176,7 +176,7 @@ if nearby_stations:
     combined_data = combined_data.sort_values('Distance (km)')
     
     st.write(f"Charging Stations within {search_radius_miles} miles:")
-    st.dataframe(combined_data[['name', 'node_name', 'stationNumber', 'charging_states', 'Distance (km)']])
+    st.dataframe(combined_data[['node_name', 'stationNumber', 'charging_states', 'Distance (km)']])
 else:
     st.write(f"No stations found within {search_radius_miles} miles of your location.")
 
