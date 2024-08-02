@@ -194,7 +194,7 @@ if nearby_stations:
             time.sleep(polling_interval)
             combined_data = update_charging_data()
             charging_data_container.dataframe(combined_data[['node_name', 'stationNumber', 'charging_states', 'Distance (km)']])
-            st.experimental_rerun()
+            st.rerun()
 else:
     st.write(f"No stations found within {search_radius_miles} miles of your location.")
 
