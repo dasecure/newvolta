@@ -8,6 +8,7 @@ from streamlit_geolocation import streamlit_geolocation
 from math import radians, sin, cos, sqrt, atan2
 from geopy.geocoders import Nominatim
 from geopy.exc import GeocoderTimedOut, GeocoderUnavailable
+import numpy as np
 
 def geocode_location(location_name):
     geolocator = Nominatim(user_agent="my_app")
@@ -206,8 +207,13 @@ if nearby_stations:
     combined_data = update_charging_data()
     
     st.write(f"Charging Stations within {search_radius_miles} miles:")
+    def color_charging_states(val):
+        color = 'green' if val in ['PLUGGED_OUT', 'IDLE'] else 'red'
+        return f'background-color: {color}'
+
     charging_data_container = st.empty()
-    charging_data_container.dataframe(combined_data[['node_name', 'stationNumber', 'charging_states', 'Distance (km)']])
+    styled_df = combined_data[['node_name', 'stationNumber', 'charging_states', 'Distance (km)']].style.applymap(color_charging_states, subset=['charging_states'])
+    charging_data_container.dataframe(styled_df)
 
     if enable_polling:
         st.write("Real-time updates enabled. Data will refresh every 2 seconds.")
@@ -215,7 +221,8 @@ if nearby_stations:
             time.sleep(polling_interval)
             previous_data = combined_data.copy()
             combined_data = update_charging_data(previous_data)
-            charging_data_container.dataframe(combined_data[['node_name', 'stationNumber', 'charging_states', 'Distance (km)']])
+            styled_df = combined_data[['node_name', 'stationNumber', 'charging_states', 'Distance (km)']].style.applymap(color_charging_states, subset=['charging_states'])
+            charging_data_container.dataframe(styled_df)
             st.rerun()
 else:
     st.write(f"No stations found within {search_radius_miles} miles of your location.")
