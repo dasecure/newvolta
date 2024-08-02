@@ -204,7 +204,7 @@ for station in stations:
             'Name': station_name,
             'Latitude': station_lat,
             'Longitude': station_lon,
-            'Distance (miles)': round(distance / 1.60934, 2),  # Convert km to miles
+            'Distance (miles)': f"{distance / 1.60934:.2f}",  # Convert km to miles and format to 2 decimal places
             'NodeId': node_id
         })
 
