@@ -4,7 +4,6 @@ import pandas as pd
 import requests
 from streamlit_geolocation import streamlit_geolocation
 from math import radians, sin, cos, sqrt, atan2
-from get_stations_with_charging_state import get_stations_with_charging_state
 
 def get_stations_data(location_node_id):
     # API endpoint
