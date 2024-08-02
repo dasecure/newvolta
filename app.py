@@ -3,6 +3,7 @@ import sqlite3
 import pandas as pd
 import requests
 import time
+import subprocess
 from streamlit_geolocation import streamlit_geolocation
 from math import radians, sin, cos, sqrt, atan2
 from geopy.geocoders import Nominatim
@@ -121,6 +122,9 @@ search_radius_km = search_radius_miles * 1.60934  # Convert miles to kilometers
 enable_polling = st.checkbox("Enable real-time updates", value=False)
 polling_interval = 2  # Default polling interval in seconds
 
+# Add checkbox for notifications
+enable_notifications = st.checkbox("Enable notifications", value=False)
+
 # Add location search textbox
 location_search = st.text_input("Enter a city name or address:")
 
@@ -171,15 +175,32 @@ if nearby_stations:
     df = pd.DataFrame(nearby_stations)
     df = df.sort_values('Distance (km)')
     
-    def update_charging_data():
+    def send_notification(node_name, charging_state):
+        message = f"{node_name} is {charging_state}"
+        subprocess.run(["curl", "-d", message, "ntfy.sh/voltatrack_available"])
+
+    def update_charging_data(previous_data=None):
         all_charging_data = []
         for _, station in df.iterrows():
             charging_data = get_stations_with_charging_state(station['NodeId'])
             charging_data['Distance (km)'] = station['Distance (km)']
             all_charging_data.append(charging_data)
-        
+    
         combined_data = pd.concat(all_charging_data, ignore_index=True)
         combined_data = combined_data.sort_values('Distance (km)')
+    
+        if enable_notifications and previous_data is not None:
+            for _, current_row in combined_data.iterrows():
+                previous_row = previous_data[
+                    (previous_data['node_name'] == current_row['node_name']) & 
+                    (previous_data['stationNumber'] == current_row['stationNumber'])
+                ]
+                if not previous_row.empty:
+                    prev_state = previous_row['charging_states'].iloc[0]
+                    curr_state = current_row['charging_states']
+                    if prev_state in ['charging', 'charging_stopped'] and curr_state == 'plugged_out':
+                        send_notification(current_row['node_name'], curr_state)
+    
         return combined_data
 
     combined_data = update_charging_data()
@@ -192,7 +213,8 @@ if nearby_stations:
         st.write("Real-time updates enabled. Data will refresh every 2 seconds.")
         while True:
             time.sleep(polling_interval)
-            combined_data = update_charging_data()
+            previous_data = combined_data.copy()
+            combined_data = update_charging_data(previous_data)
             charging_data_container.dataframe(combined_data[['node_name', 'stationNumber', 'charging_states', 'Distance (km)']])
             st.rerun()
 else:
