@@ -10,6 +10,35 @@ from geopy.geocoders import Nominatim
 from geopy.exc import GeocoderTimedOut, GeocoderUnavailable
 import numpy as np
 
+# Set page configuration
+st.set_page_config(page_title="Nearby Stations Finder", page_icon="🔌", layout="wide")
+
+# Custom CSS
+st.markdown("""
+<style>
+    .reportview-container {
+        background: #f0f2f6
+    }
+    .main .block-container {
+        padding-top: 2rem;
+        padding-bottom: 2rem;
+    }
+    h1 {
+        color: #1E88E5;
+    }
+    .stButton>button {
+        background-color: #1E88E5;
+        color: white;
+    }
+    .stSelectbox [data-baseweb="select"] {
+        background-color: white;
+    }
+    .stTextInput>div>div>input {
+        background-color: white;
+    }
+</style>
+""", unsafe_allow_html=True)
+
 def geocode_location(location_name):
     geolocator = Nominatim(user_agent="my_app")
     try:
@@ -109,25 +138,32 @@ def haversine_distance(lat1, lon1, lat2, lon2):
     distance = R * c
     return distance
 
-st.title("Nearby Stations Finder")
+st.title("🔌 Nearby Charging Stations Finder")
+
+col1, col2 = st.columns(2)
+
+with col1:
+    st.subheader("📍 Location")
+    location_search = st.text_input("Enter a city name or address:", placeholder="e.g., New York, NY")
+
+    if not location_search:
+        st.info("Using current or default location")
+
+with col2:
+    st.subheader("🔍 Search Options")
+    search_radius_miles = st.select_slider("Select search radius (miles):", options=[4, 6, 8, 10, 12], value=8)
+    search_radius_km = search_radius_miles * 1.60934  # Convert miles to kilometers
+
+    enable_polling = st.toggle("Enable real-time updates", value=False)
+    polling_interval = 2  # Default polling interval in seconds
+
+    enable_notifications = st.toggle("Enable notifications", value=False)
 
 # Default location (Cupertino, CA)
 default_lat = 37.3526819
 default_lon = -122.0513147
 
-# Add search radius selectbox
-search_radius_miles = st.selectbox("Select search radius (miles):", [4, 6, 8, 10, 12])
-search_radius_km = search_radius_miles * 1.60934  # Convert miles to kilometers
-
-# Add checkbox for polling
-enable_polling = st.checkbox("Enable real-time updates", value=False)
-polling_interval = 2  # Default polling interval in seconds
-
-# Add checkbox for notifications
-enable_notifications = st.checkbox("Enable notifications", value=False)
-
-# Add location search textbox
-location_search = st.text_input("Enter a city name or address:")
+st.markdown("---")
 
 if location_search:
     lat, lon = geocode_location(location_search)
@@ -206,25 +242,56 @@ if nearby_stations:
 
     combined_data = update_charging_data()
     
-    st.write(f"Charging Stations within {search_radius_miles} miles:")
+    st.subheader(f"🔋 Charging Stations within {search_radius_miles} miles:")
+    
     def color_charging_states(val):
-        color = 'green' if val in ['PLUGGED_OUT', 'IDLE'] else 'red'
+        color = '#e6ffe6' if val in ['PLUGGED_OUT', 'IDLE'] else '#ffe6e6'
         return f'background-color: {color}'
 
     charging_data_container = st.empty()
     styled_df = combined_data[['node_name', 'stationNumber', 'charging_states', 'Distance (km)']].style.applymap(color_charging_states, subset=['charging_states'])
-    charging_data_container.dataframe(styled_df)
+    
+    # Custom CSS for the dataframe
+    st.markdown("""
+    <style>
+    .dataframe {
+        font-family: Arial, sans-serif;
+        border-collapse: collapse;
+        width: 100%;
+    }
+    .dataframe td, .dataframe th {
+        border: 1px solid #ddd;
+        padding: 8px;
+    }
+    .dataframe tr:nth-child(even) {
+        background-color: #f9f9f9;
+    }
+    .dataframe tr:hover {
+        background-color: #f5f5f5;
+    }
+    .dataframe th {
+        padding-top: 12px;
+        padding-bottom: 12px;
+        text-align: left;
+        background-color: #1E88E5;
+        color: white;
+    }
+    </style>
+    """, unsafe_allow_html=True)
+    
+    charging_data_container.dataframe(styled_df, use_container_width=True)
 
     if enable_polling:
-        st.write("Real-time updates enabled. Data will refresh every 2 seconds.")
-        while True:
-            time.sleep(polling_interval)
-            previous_data = combined_data.copy()
-            combined_data = update_charging_data(previous_data)
-            styled_df = combined_data[['node_name', 'stationNumber', 'charging_states', 'Distance (km)']].style.applymap(color_charging_states, subset=['charging_states'])
-            charging_data_container.dataframe(styled_df)
-            st.rerun()
+        st.info("🔄 Real-time updates enabled. Data will refresh every 2 seconds.")
+        with st.spinner('Updating data...'):
+            while True:
+                time.sleep(polling_interval)
+                previous_data = combined_data.copy()
+                combined_data = update_charging_data(previous_data)
+                styled_df = combined_data[['node_name', 'stationNumber', 'charging_states', 'Distance (km)']].style.applymap(color_charging_states, subset=['charging_states'])
+                charging_data_container.dataframe(styled_df, use_container_width=True)
+                st.rerun()
 else:
-    st.write(f"No stations found within {search_radius_miles} miles of your location.")
+    st.warning(f"⚠️ No stations found within {search_radius_miles} miles of your location.")
 
 conn.close()
