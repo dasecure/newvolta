@@ -210,7 +210,7 @@ for station in stations:
 
 if nearby_stations:
     df = pd.DataFrame(nearby_stations)
-    df = df.sort_values('Distance (km)')
+    df = df.sort_values('Distance (miles)')
     
     def send_notification(node_name, charging_state):
         message = f"{node_name} is {charging_state}"
