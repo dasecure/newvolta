@@ -112,6 +112,10 @@ st.title("Nearby Stations Finder")
 default_lat = 37.3526819
 default_lon = -122.0513147
 
+# Add search radius selectbox
+search_radius_miles = st.selectbox("Select search radius (miles):", [4, 6, 8, 10, 12])
+search_radius_km = search_radius_miles * 1.60934  # Convert miles to kilometers
+
 # Add location search textbox
 location_search = st.text_input("Enter a city name or address:")
 
@@ -149,7 +153,7 @@ nearby_stations = []
 for station in stations:
     station_name, station_lat, station_lon, node_id = station
     distance = haversine_distance(lat, lon, station_lat, station_lon)
-    if distance is not None and distance <= 6.44:  # 4 miles is approximately 6.44 kilometers
+    if distance is not None and distance <= search_radius_km:
         nearby_stations.append({
             'Name': station_name,
             'Latitude': station_lat,
@@ -171,9 +175,9 @@ if nearby_stations:
     combined_data = pd.concat(all_charging_data, ignore_index=True)
     combined_data = combined_data.sort_values('Distance (km)')
     
-    st.write("Charging Stations within 4 miles:")
+    st.write(f"Charging Stations within {search_radius_miles} miles:")
     st.dataframe(combined_data[['name', 'node_name', 'stationNumber', 'charging_states', 'Distance (km)']])
 else:
-    st.write("No stations found within 4 miles of your location.")
+    st.write(f"No stations found within {search_radius_miles} miles of your location.")
 
 conn.close()
