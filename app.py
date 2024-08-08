@@ -9,6 +9,8 @@ from math import radians, sin, cos, sqrt, atan2
 from geopy.geocoders import Nominatim
 from geopy.exc import GeocoderTimedOut, GeocoderUnavailable
 import numpy as np
+import time
+import random
 
 # Set page configuration
 st.set_page_config(page_title="Nearby Stations Finder", page_icon="🔌", layout="wide")
@@ -303,7 +305,13 @@ if nearby_stations:
     """, unsafe_allow_html=True)
     
     if enable_notifications:
-        edited_df = charging_data_container.data_editor(styled_df, use_container_width=True, disabled=["node_name", "stationNumber", "charging_states", "Distance (miles)"])
+        unique_key = f"data_editor_{time.time()}_{random.randint(0, 1000000)}"
+        edited_df = charging_data_container.data_editor(
+            styled_df,
+            use_container_width=True,
+            disabled=["node_name", "stationNumber", "charging_states", "Distance (miles)"],
+            key=unique_key
+        )
     else:
         charging_data_container.dataframe(styled_df, use_container_width=True)
 
@@ -320,7 +328,13 @@ if nearby_stations:
                     columns_to_display = ['node_name', 'stationNumber', 'charging_states', 'Distance (miles)']
                 styled_df = combined_data[columns_to_display].style.applymap(color_charging_states)
                 if enable_notifications:
-                    edited_df = charging_data_container.data_editor(styled_df, use_container_width=True, disabled=["node_name", "stationNumber", "charging_states", "Distance (miles)"])
+                    unique_key = f"data_editor_loop_{time.time()}_{random.randint(0, 1000000)}"
+                    edited_df = charging_data_container.data_editor(
+                        styled_df,
+                        use_container_width=True,
+                        disabled=["node_name", "stationNumber", "charging_states", "Distance (miles)"],
+                        key=unique_key
+                    )
                 else:
                     charging_data_container.dataframe(styled_df, use_container_width=True)
                 st.rerun()
