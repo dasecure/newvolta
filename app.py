@@ -226,6 +226,9 @@ if nearby_stations:
         combined_data = pd.concat(all_charging_data, ignore_index=True)
         combined_data = combined_data.sort_values('Distance (miles)')
     
+        if enable_notifications:
+            combined_data['Notify'] = False  # Add checkbox column
+    
         if enable_notifications and previous_data is not None:
             for _, current_row in combined_data.iterrows():
                 previous_row = previous_data[
@@ -245,11 +248,19 @@ if nearby_stations:
     st.subheader(f"🔋 Charging Stations within {search_radius_miles} miles:")
     
     def color_charging_states(val):
+        if isinstance(val, bool):  # For checkbox column
+            return ''
         bg_color = '#e6ffe6' if val in ['PLUGGED_OUT', 'IDLE'] else '#ffe6e6'
         return f'background-color: {bg_color}; color: #333333;'
 
     charging_data_container = st.empty()
-    styled_df = combined_data[['node_name', 'stationNumber', 'charging_states', 'Distance (miles)']].style.applymap(color_charging_states, subset=['charging_states'])
+    
+    if enable_notifications:
+        columns_to_display = ['node_name', 'stationNumber', 'charging_states', 'Distance (miles)', 'Notify']
+    else:
+        columns_to_display = ['node_name', 'stationNumber', 'charging_states', 'Distance (miles)']
+    
+    styled_df = combined_data[columns_to_display].style.applymap(color_charging_states)
     
     # Custom CSS for the dataframe
     st.markdown("""
@@ -284,10 +295,17 @@ if nearby_stations:
         background-color: #1E88E5;
         color: white;
     }
+    .dataframe td:nth-child(5) {  /* Notify column */
+        width: 50px;
+        text-align: center;
+    }
     </style>
     """, unsafe_allow_html=True)
     
-    charging_data_container.dataframe(styled_df, use_container_width=True)
+    if enable_notifications:
+        edited_df = charging_data_container.data_editor(styled_df, use_container_width=True, disabled=["node_name", "stationNumber", "charging_states", "Distance (miles)"])
+    else:
+        charging_data_container.dataframe(styled_df, use_container_width=True)
 
     if enable_polling:
         st.info("🔄 Real-time updates enabled. Data will refresh every 2 seconds.")
@@ -296,8 +314,15 @@ if nearby_stations:
                 time.sleep(polling_interval)
                 previous_data = combined_data.copy()
                 combined_data = update_charging_data(previous_data)
-                styled_df = combined_data[['node_name', 'stationNumber', 'charging_states', 'Distance (miles)']].style.applymap(color_charging_states, subset=['charging_states'])
-                charging_data_container.dataframe(styled_df, use_container_width=True)
+                if enable_notifications:
+                    columns_to_display = ['node_name', 'stationNumber', 'charging_states', 'Distance (miles)', 'Notify']
+                else:
+                    columns_to_display = ['node_name', 'stationNumber', 'charging_states', 'Distance (miles)']
+                styled_df = combined_data[columns_to_display].style.applymap(color_charging_states)
+                if enable_notifications:
+                    edited_df = charging_data_container.data_editor(styled_df, use_container_width=True, disabled=["node_name", "stationNumber", "charging_states", "Distance (miles)"])
+                else:
+                    charging_data_container.dataframe(styled_df, use_container_width=True)
                 st.rerun()
 else:
     st.warning(f"⚠️ No stations found within {search_radius_miles} miles of your location.")
