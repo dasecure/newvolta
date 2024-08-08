@@ -11,6 +11,7 @@ from geopy.exc import GeocoderTimedOut, GeocoderUnavailable
 import numpy as np
 import time
 import random
+from collections import defaultdict
 
 # Set page configuration
 st.set_page_config(page_title="Nearby Stations Finder", page_icon="🔌", layout="wide")
@@ -229,7 +230,13 @@ if nearby_stations:
         combined_data = combined_data.sort_values('Distance (miles)')
     
         if enable_notifications:
-            combined_data['Notify'] = False  # Add checkbox column
+            if 'notify_state' not in st.session_state:
+                st.session_state.notify_state = defaultdict(bool)
+            
+            combined_data['Notify'] = combined_data.apply(
+                lambda row: st.session_state.notify_state.get(f"{row['node_name']}_{row['stationNumber']}", False),
+                axis=1
+            )
     
         if enable_notifications and previous_data is not None:
             for _, current_row in combined_data.iterrows():
@@ -312,6 +319,11 @@ if nearby_stations:
             disabled=["node_name", "stationNumber", "charging_states", "Distance (miles)"],
             key=unique_key
         )
+        
+        # Update session state with new checkbox values
+        for _, row in edited_df.iterrows():
+            key = f"{row['node_name']}_{row['stationNumber']}"
+            st.session_state.notify_state[key] = row['Notify']
     else:
         charging_data_container.dataframe(styled_df, use_container_width=True)
 
@@ -335,6 +347,11 @@ if nearby_stations:
                         disabled=["node_name", "stationNumber", "charging_states", "Distance (miles)"],
                         key=unique_key
                     )
+                    
+                    # Update session state with new checkbox values
+                    for _, row in edited_df.iterrows():
+                        key = f"{row['node_name']}_{row['stationNumber']}"
+                        st.session_state.notify_state[key] = row['Notify']
                 else:
                     charging_data_container.dataframe(styled_df, use_container_width=True)
                 st.rerun()
