@@ -241,8 +241,7 @@ if nearby_stations:
         if enable_notifications and previous_data is not None:
             for _, current_row in combined_data.iterrows():
                 previous_row = previous_data[
-                    (previous_data['node_name'] == current_row['node_name']) & 
-                    (previous_data['stationNumber'] == current_row['stationNumber'])
+                    (previous_data['node_name'] == current_row['node_name'])
                 ]
                 if not previous_row.empty:
                     prev_state = previous_row['charging_states'].iloc[0]
