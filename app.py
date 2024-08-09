@@ -234,7 +234,7 @@ if nearby_stations:
                 st.session_state.notify_state = defaultdict(bool)
             
             combined_data['Notify'] = combined_data.apply(
-                lambda row: st.session_state.notify_state.get(f"{row['node_name']}_{row['stationNumber']}", False),
+                lambda row: st.session_state.notify_state.get(f"{row['node_name']}", False),
                 axis=1
             )
     
@@ -242,7 +242,6 @@ if nearby_stations:
             for _, current_row in combined_data.iterrows():
                 previous_row = previous_data[
                     (previous_data['node_name'] == current_row['node_name'])
-                    #  &
                 ]
                 if not previous_row.empty:
                     prev_state = previous_row['charging_states'].iloc[0]
@@ -316,13 +315,13 @@ if nearby_stations:
         edited_df = charging_data_container.data_editor(
             styled_df,
             use_container_width=True,
-            disabled=["node_name", "stationNumber", "charging_states", "Distance (miles)"],
+            disabled=["node_name", "charging_states", "Distance (miles)"],
             key=unique_key
         )
         
         # Update session state with new checkbox values
         for _, row in edited_df.iterrows():
-            key = f"{row['node_name']}_{row['stationNumber']}"
+            key = f"{row['node_name']}"
             st.session_state.notify_state[key] = row['Notify']
     else:
         charging_data_container.dataframe(styled_df, use_container_width=True)
