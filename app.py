@@ -322,7 +322,7 @@ if nearby_stations:
         
         # Update session state with new checkbox values
         for _, row in edited_df.iterrows():
-            key = f"{row['node_name']}_{row['stationNumber']}"
+            key = f"{row['node_name']}"
             st.session_state.notify_state[key] = row['Notify']
     else:
         charging_data_container.dataframe(styled_df, use_container_width=True)
