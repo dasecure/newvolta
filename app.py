@@ -234,7 +234,7 @@ if nearby_stations:
                 st.session_state.notify_state = defaultdict(bool)
             
             combined_data['Notify'] = combined_data.apply(
-                lambda row: st.session_state.notify_state.get(f"{row['node_name']}_{row['stationNumber']}", False),
+                lambda row: st.session_state.notify_state.get(f"{row['node_name']}", False),
                 axis=1
             )
     
