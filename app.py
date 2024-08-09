@@ -114,7 +114,7 @@ def get_stations_with_charging_state(location_node_id):
         stations_list.append({
             "name": station_name,
             "node_name": station_node['name'],
-            "stationNumber": station_node['stationNumber'],
+            # "stationNumber": station_node['stationNumber'],
             "charging_states": charging_states
         })
     df_stations = pd.DataFrame(stations_list)
@@ -241,8 +241,8 @@ if nearby_stations:
         if enable_notifications and previous_data is not None:
             for _, current_row in combined_data.iterrows():
                 previous_row = previous_data[
-                    (previous_data['node_name'] == current_row['node_name']) & 
-                    (previous_data['stationNumber'] == current_row['stationNumber'])
+                    (previous_data['node_name'] == current_row['node_name'])
+                    #  &
                 ]
                 if not previous_row.empty:
                     prev_state = previous_row['charging_states'].iloc[0]
@@ -265,9 +265,9 @@ if nearby_stations:
     charging_data_container = st.empty()
     
     if enable_notifications:
-        columns_to_display = ['node_name', 'stationNumber', 'charging_states', 'Distance (miles)', 'Notify']
+        columns_to_display = ['node_name', 'charging_states', 'Distance (miles)', 'Notify']
     else:
-        columns_to_display = ['node_name', 'stationNumber', 'charging_states', 'Distance (miles)']
+        columns_to_display = ['node_name', 'charging_states', 'Distance (miles)']
     
     styled_df = combined_data[columns_to_display].style.applymap(color_charging_states)
     
