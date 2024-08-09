@@ -315,7 +315,7 @@ if nearby_stations:
         edited_df = charging_data_container.data_editor(
             styled_df,
             use_container_width=True,
-            disabled=["node_name", "stationNumber", "charging_states", "Distance (miles)"],
+            disabled=["node_name", "charging_states", "Distance (miles)"],
             key=unique_key
         )
         
@@ -334,22 +334,22 @@ if nearby_stations:
                 previous_data = combined_data.copy()
                 combined_data = update_charging_data(previous_data)
                 if enable_notifications:
-                    columns_to_display = ['node_name', 'stationNumber', 'charging_states', 'Distance (miles)', 'Notify']
+                    columns_to_display = ['node_name', 'charging_states', 'Distance (miles)', 'Notify']
                 else:
-                    columns_to_display = ['node_name', 'stationNumber', 'charging_states', 'Distance (miles)']
+                    columns_to_display = ['node_name', 'charging_states', 'Distance (miles)']
                 styled_df = combined_data[columns_to_display].style.applymap(color_charging_states)
                 if enable_notifications:
                     unique_key = f"data_editor_loop_{time.time()}_{random.randint(0, 1000000)}"
                     edited_df = charging_data_container.data_editor(
                         styled_df,
                         use_container_width=True,
-                        disabled=["node_name", "stationNumber", "charging_states", "Distance (miles)"],
+                        disabled=["node_name", "charging_states", "Distance (miles)"],
                         key=unique_key
                     )
                     
                     # Update session state with new checkbox values
                     for _, row in edited_df.iterrows():
-                        key = f"{row['node_name']}_{row['stationNumber']}"
+                        key = f"{row['node_name']}"
                         st.session_state.notify_state[key] = row['Notify']
                 else:
                     charging_data_container.dataframe(styled_df, use_container_width=True)
