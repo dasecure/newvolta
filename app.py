@@ -246,7 +246,7 @@ if nearby_stations:
                 if not previous_row.empty:
                     prev_state = previous_row['charging_states'].iloc[0]
                     curr_state = current_row['charging_states']
-                    if prev_state in ['CHARGING', 'CHARGE_STOPPED'] and curr_state == 'PLUGGED_OUT':
+                    if prev_state in ['CHARGING', 'CHARGE_STOPPED'] and curr_state == 'PLUGGED_OUT' | 'IDLE':
                         send_notification(current_row['node_name'], curr_state)
     
         return combined_data
